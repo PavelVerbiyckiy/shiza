@@ -1,0 +1,87 @@
+using Microsoft.Cci;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEditor.SearchService;
+using UnityEngine;
+using UnityEngine.Assertions.Must;
+using UnityEngine.UIElements;
+using UnityEngine.SceneManagement;
+
+public class Controller : MonoBehaviour
+{
+    private Rigidbody2D _rigidBody;
+    private BoxCollider2D _collider2d;
+    private Transform _transform;
+
+    public int sceneBuildIndex;
+
+
+    [SerializeField] private float forceRun = 1f;
+    [SerializeField] private float forceJump = 1f;
+    [SerializeField] private LayerMask jumpableGround;
+
+    private float cooldown = 5f;
+    private float nextCooldown = 10f;
+ 
+
+    private void Start()
+    {
+        _rigidBody = GetComponent<Rigidbody2D>();
+        _collider2d = GetComponent<BoxCollider2D>();
+        _transform = GetComponent<Transform>();
+    }
+
+    private void Update()
+    {
+        
+    }
+
+    private void FixedUpdate()
+    {
+        if (Input.GetButton("Horizontal")) { Run(); }
+        if (Input.GetButton("Jump") && IsGrounded()) { Jump(); }
+        TransitionWorld();
+      
+    }
+
+    private void Run()
+    {    
+        Vector3 dir = transform.right * Input.GetAxis("Horizontal");
+        transform.position = Vector3.MoveTowards(transform.position, transform.position + dir, forceRun * Time.deltaTime);
+    }
+    private void Jump()
+    {
+        _rigidBody.velocity = new Vector2(_rigidBody.velocity.x, forceJump);
+    }
+    private bool IsGrounded()
+    {
+        return Physics2D.BoxCast(_collider2d.bounds.center, _collider2d.bounds.size, 0f, Vector2.down, .1f, jumpableGround);
+    }
+
+
+
+
+    private void TransitionWorld()
+    {
+        if (Input.GetButton("TransitionWorld"))
+        {
+            if (Time.time < cooldown)
+            {
+                return;                 
+            }
+            nextCooldown = Time.time + cooldown;
+
+
+
+            SceneManager.LoadScene(sceneBuildIndex, LoadSceneMode.Single);
+
+                                  
+        }   
+    }   
+    
+
+
+
+}
